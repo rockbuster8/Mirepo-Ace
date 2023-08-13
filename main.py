@@ -108,30 +108,30 @@ def export_channels(channel_dict, export_file):
 
     if all_channels != "":
         
-        all_channels_kodi = all_channels.replace("acestream://", "plugin://script.module.horus?action=play&id=")
-        all_channels_get = all_channels.replace("acestream://", "http://127.0.0.1:6878/ace/getstream?id=")
+        filtered_playlist_kodi = all_channels.replace("acestream://", "plugin://script.module.horus?action=play&id=")
+        filtered_playlist_get = all_channels.replace("acestream://", "http://127.0.0.1:6878/ace/getstream?id=")
         blacklist = ["Francia", "Polonia", "Alemania", "UK", "Adultos", "Rusia", "Rumania", "Barça TV", "Ziggo", "Kings", "BT", "ESPN", "Fox", "Sport Tv", "720", "Telecinco", "Sky", "Spain", "Twitch", "Peliculas", "Deportes sin Acestream", "TDT", "Colombia", "DirectSports Plus", "RALLY", "tdt", "rally", "RUSIA-РОССИЯ", "UNITED STATES", "LAT", "MUSIC", "CANADA", "CHILE", "PARAGUAY", "MEXICO", "ECUADOR", "PERU", "CUBA", "BOLIVIA", "COLOMBIA", "URUGUAY", "ARGENTINA", "ESPAÑA", "DESPORTOS MUNDO", "VENEZUELA", "Luca", "Setanta", "Mundotoro", "SETANTA SPORTS", "Petanca", "INSTAT",  "instat", "#EXTINF:0", "VOD ESPAÑOL"]  # lista negra    
         i = 0  # inicializamos el índice
-
+        filtered_playlist = []
         while i < len(all_channels):
             if i < len(all_channels) - 1 and "#EXTINF" in all_channels[i] and any(b in all_channels[i] for b in blacklist):
                 i += 2  # saltar las dos líneas
             else:
-                filtered_playlist.append(all_channels[i])
+                all_channels.append(all_channels[i])
                 i += 1
         filtered_playlist = "\n".join(filtered_playlist)  # unimos las líneas filtradas
         with open(export_file, "w") as f:
-            f.write(all_channels)
+            f.write(filtered_playlist)
             print("exportChannels : OK : list exported to Github")
             f.close()
 
         with open("kodi.txt", "w") as k:
-            k.write(all_channels_kodi)
+            k.write(filtered_playlist_kodi)
             print("exportChannels : OK : kodi list exported to Github")
             k.close()
 
         with open("get.txt", "w") as g:
-            g.write(all_channels_get)
+            g.write(filtered_playlist_get)
             print("exportChannels : OK : get list exported to Github")
             g.close()
             
