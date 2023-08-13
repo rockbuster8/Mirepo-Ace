@@ -10,12 +10,12 @@ import asyncio
 
 def main():
     asyncio.run(export_messages())
-    
+
 
 async def export_messages(export_file = "base.txt"):
-    
+
         channel_dict = dict()  # {channel_id: channel_name}
-        
+
         try:
             contenido = scraper()
             cleansed_content = cleanse_message(contenido)
@@ -23,16 +23,16 @@ async def export_messages(export_file = "base.txt"):
         except Exception as e:
             print("exportMessages : ERROR :", e)
             sys.exit(0)
-            
+
         export_channels(channel_dict, export_file)
-    
-  
+
+
 def cleanse_message(message_content):
-    
+
     cleansed_content = ""
     rows = [row for row in message_content.split("\n") if len(row.strip()) > 0]
     channel_id_regex = r'[a-zA-Z0-9]{40}'
-    
+
     if re.search(channel_id_regex, message_content):
         for i, row in enumerate(rows):
             if re.search(channel_id_regex, row):
@@ -40,14 +40,14 @@ def cleanse_message(message_content):
                   cleansed_content += rows[i-1] + "\n" + row + "\n"
                 else:
                   cleansed_content += "UNTITLED CHANNEL" + "\n" + row + "\n"
-                
+
     return cleansed_content
 
 
 def update_channel_dict(message_content, channel_dict):
-    
+
     rows = message_content.split("\n")
-    
+
     for i, row in enumerate(rows):
         if i % 2 == 1:
             channel_id = row
@@ -70,16 +70,16 @@ def update_channel_dict(message_content, channel_dict):
                 channel_name = channel_name.replace("BarÃ§a", "Barça")
             elif "beIN SPORTS Ã±" in channel_name:
                 channel_name = channel_name.replace("beIN SPORTS Ã±", "beIN SPORTS ñ")
-                
+
             channel_dict[channel_id] = channel_name
-            
+
     return channel_dict
 
 
 def export_channels(channel_dict, export_file):
-    
+
     channel_list = []
-    
+
     for channel_id, channel_name in channel_dict.items():
         group_title = u.extract_group_title(channel_name)
         tvg_id = u.extract_tvg_id(channel_name)
@@ -91,7 +91,7 @@ def export_channels(channel_dict, export_file):
                         "channel_id": channel_id,
                         "channel_name": channel_name + "  " + identif}
         channel_list.append(channel_info)
-        
+
     all_channels = ""
     all_channels += '#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guia.xml, https://raw.githubusercontent.com/acidjesuz/EPG/master/guide.xml"\n'
     channel_pattern = '#EXTINF:-1 group-title="GROUPTITLE" tvg-id="TVGID" tvg-logo="LOGO" ,CHANNELTITLE\nacestream://CHANNELID\n'
@@ -107,37 +107,30 @@ def export_channels(channel_dict, export_file):
                                                .replace("CHANNELTITLE", channel_info["channel_name"])
 
     if all_channels != "":
-        
-        filtered_playlist_kodi = all_channels.replace("acestream://", "plugin://script.module.horus?action=play&id=")
-        filtered_playlist_get = all_channels.replace("acestream://", "http://127.0.0.1:6878/ace/getstream?id=")
-        blacklist = ["Francia", "Polonia", "Alemania", "UK", "Adultos", "Rusia", "Rumania", "Barça TV", "Ziggo", "Kings", "BT", "ESPN", "Fox", "Sport Tv", "720", "Telecinco", "Sky", "Spain", "Twitch", "Peliculas", "Deportes sin Acestream", "TDT", "Colombia", "DirectSports Plus", "RALLY", "tdt", "rally", "RUSIA-РОССИЯ", "UNITED STATES", "LAT", "MUSIC", "CANADA", "CHILE", "PARAGUAY", "MEXICO", "ECUADOR", "PERU", "CUBA", "BOLIVIA", "COLOMBIA", "URUGUAY", "ARGENTINA", "ESPAÑA", "DESPORTOS MUNDO", "VENEZUELA", "Luca", "Setanta", "Mundotoro", "SETANTA SPORTS", "Petanca", "INSTAT",  "instat", "#EXTINF:0", "VOD ESPAÑOL"]  # lista negra    
-        i = 0  # inicializamos el índice
-        filtered_playlist = []
-        while i < len(all_channels):
-            if i < len(all_channels) - 1 and "#EXTINF" in all_channels[i] and any(b in all_channels[i] for b in blacklist):
-                i += 2  # saltar las dos líneas
-            else:
-                all_channels.append(all_channels[i])
-                i += 1
-        filtered_playlist = "\n".join(filtered_playlist)  # unimos las líneas filtradas
+
+        all_channels_kodi = all_channels.replace("acestream://", "plugin://script.module.horus?action=play&id=")
+        all_channels_get = all_channels.replace("acestream://", "http://127.0.0.1:6878/ace/getstream?id=")
+
+
         with open(export_file, "w") as f:
-            f.write(filtered_playlist)
+            f.write(all_channels)
             print("exportChannels : OK : list exported to Github")
             f.close()
 
         with open("kodi.txt", "w") as k:
-            k.write(filtered_playlist_kodi)
+            k.write(all_channels_kodi)
             print("exportChannels : OK : kodi list exported to Github")
             k.close()
 
         with open("get.txt", "w") as g:
-            g.write(filtered_playlist_get)
+            g.write(all_channels_get)
             print("exportChannels : OK : get list exported to Github")
             g.close()
-            
+
     else:
         print("exportChannels : ERROR : list is empty")
-        
+
 
 if __name__ == "__main__":
     main()
+    #gitUpdate()
